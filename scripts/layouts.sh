@@ -10,6 +10,40 @@ get_option() {
   echo "${val:-$default}"
 }
 
+# Reorder secondary panes to match the desired priority order.
+# Args: desired_pane1 desired_pane2 ...
+# Reads current pane list from tmux, skips the first (primary) pane.
+reorder_secondary_panes() {
+  local desired=("$@")
+  local current
+  current=($(tmux list-panes -F '#{pane_id}'))
+  local secondary=("${current[@]:2}") # zsh arrays are 1-indexed; skip primary
+
+  for (( i = 1; i <= $#desired; i++ )); do
+    if (( i <= $#secondary )) && [[ "${desired[$i]}" != "${secondary[$i]}" ]]; then
+      for (( j = i; j <= $#secondary; j++ )); do
+        if [[ "${secondary[$j]}" == "${desired[$i]}" ]]; then
+          tmux swap-pane -s "${secondary[$j]}" -t "${secondary[$i]}"
+          local tmp="${secondary[$i]}"
+          secondary[$i]="${secondary[$j]}"
+          secondary[$j]="$tmp"
+          break
+        fi
+      done
+    fi
+  done
+}
+
+# Move a pane to the first position if it isn't already there.
+ensure_primary_pane() {
+  local target="$1"
+  local first
+  first="$(tmux list-panes -F '#{pane_id}' | head -1)"
+  if [[ "$target" != "$first" ]]; then
+    tmux swap-pane -s "$target" -t "$first"
+  fi
+}
+
 # Strategy 1: Main editor on the left (~65%), remaining panes stacked on the right.
 # Args: editor_pane other_pane1 other_pane2 ...
 layout_main_sidebar() {
@@ -23,41 +57,10 @@ layout_main_sidebar() {
   window_width="$(tmux display-message -p '#{window_width}')"
   local editor_width=$(( window_width * editor_size / 100 ))
 
-  # Move editor pane to be the first (top-left) pane.
-  local first_pane
-  first_pane="$(tmux list-panes -F '#{pane_id}' | head -1)"
-
-  if [[ "$editor_pane" != "$first_pane" ]]; then
-    tmux swap-pane -s "$editor_pane" -t "$first_pane"
-  fi
-
-  # Apply main-vertical base layout (first pane gets the left column).
+  ensure_primary_pane "$editor_pane"
   tmux select-layout main-vertical
-
-  # Reorder the right-side panes by priority (they're already passed in priority order).
-  local current_panes
-  current_panes=($(tmux list-panes -F '#{pane_id}'))
-  local right_panes=("${current_panes[@]:2}") # zsh arrays are 1-indexed
-
-  # Swap right-side panes into priority order
-  for (( i = 1; i <= $#other_panes; i++ )); do
-    if (( i <= $#right_panes )) && [[ "${other_panes[$i]}" != "${right_panes[$i]}" ]]; then
-      for (( j = i; j <= $#right_panes; j++ )); do
-        if [[ "${right_panes[$j]}" == "${other_panes[$i]}" ]]; then
-          tmux swap-pane -s "${right_panes[$j]}" -t "${right_panes[$i]}"
-          local tmp="${right_panes[$i]}"
-          right_panes[$i]="${right_panes[$j]}"
-          right_panes[$j]="$tmp"
-          break
-        fi
-      done
-    fi
-  done
-
-  # Resize editor pane
-  local final_first
-  final_first="$(tmux list-panes -F '#{pane_id}' | head -1)"
-  tmux resize-pane -t "$final_first" -x "$editor_width"
+  reorder_secondary_panes "${other_panes[@]}"
+  tmux resize-pane -t "$(tmux list-panes -F '#{pane_id}' | head -1)" -x "$editor_width"
 }
 
 # Strategy 2: Primary pane on top (~60%), remaining panes split horizontally below.
@@ -73,40 +76,10 @@ layout_top_bottom() {
   window_height="$(tmux display-message -p '#{window_height}')"
   local primary_height=$(( window_height * primary_size / 100 ))
 
-  # Ensure primary pane is first
-  local first_pane
-  first_pane="$(tmux list-panes -F '#{pane_id}' | head -1)"
-
-  if [[ "$primary_pane" != "$first_pane" ]]; then
-    tmux swap-pane -s "$primary_pane" -t "$first_pane"
-  fi
-
-  # Apply main-horizontal base layout (first pane on top, rest below side-by-side).
+  ensure_primary_pane "$primary_pane"
   tmux select-layout main-horizontal
-
-  # Reorder bottom panes by priority
-  local current_panes
-  current_panes=($(tmux list-panes -F '#{pane_id}'))
-  local bottom_panes=("${current_panes[@]:2}") # zsh arrays are 1-indexed
-
-  for (( i = 1; i <= $#other_panes; i++ )); do
-    if (( i <= $#bottom_panes )) && [[ "${other_panes[$i]}" != "${bottom_panes[$i]}" ]]; then
-      for (( j = i; j <= $#bottom_panes; j++ )); do
-        if [[ "${bottom_panes[$j]}" == "${other_panes[$i]}" ]]; then
-          tmux swap-pane -s "${bottom_panes[$j]}" -t "${bottom_panes[$i]}"
-          local tmp="${bottom_panes[$i]}"
-          bottom_panes[$i]="${bottom_panes[$j]}"
-          bottom_panes[$j]="$tmp"
-          break
-        fi
-      done
-    fi
-  done
-
-  # Resize primary pane
-  local final_first
-  final_first="$(tmux list-panes -F '#{pane_id}' | head -1)"
-  tmux resize-pane -t "$final_first" -y "$primary_height"
+  reorder_secondary_panes "${other_panes[@]}"
+  tmux resize-pane -t "$(tmux list-panes -F '#{pane_id}' | head -1)" -y "$primary_height"
 }
 
 # Strategy 3: Even tiled layout (fallback).

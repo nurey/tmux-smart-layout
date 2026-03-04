@@ -44,7 +44,7 @@ case "$cmd_lower" in
 esac
 
 # Pass 2 — Content heuristics (only reached for shell processes)
-content="$(tmux capture-pane -t "$pane_id" -p 2>/dev/null)"
+content="$(tmux capture-pane -t "$pane_id" -p -S -20 2>/dev/null)"
 
 if echo "$content" | grep -qE '(irb\(main\)|pry\(main\)|rails console|>>> |> \.\.\.|In \[[0-9]+\]:)'; then
   echo "repl"
