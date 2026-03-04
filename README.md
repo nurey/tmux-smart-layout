@@ -15,6 +15,11 @@ When triggered, the plugin:
    - **Top + bottom** — when a REPL/test/build pane is the primary, it gets ~60% height on top
    - **Even tiled** — fallback when all panes are shells or no clear primary exists
 
+## Requirements
+
+- tmux
+- zsh (pre-installed on macOS)
+
 ## Installation
 
 ### With [TPM](https://github.com/tmux-plugins/tpm)
