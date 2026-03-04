@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#!/usr/bin/env zsh
+CURRENT_DIR="${0:A:h}"
 
 default_key="L"
 key="$(tmux show-option -gqv @smart-layout-key)"

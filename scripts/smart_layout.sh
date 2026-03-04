@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 # Main orchestrator for tmux-smart-layout.
 # Lists all panes, classifies them, picks a layout strategy, and rearranges.
 
-CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CURRENT_DIR="${0:A:h}"
 source "$CURRENT_DIR/layouts.sh"
 
 # Priority ranking (lower number = higher priority = gets more space)
@@ -30,13 +30,13 @@ if [[ ${#pane_ids[@]} -le 1 ]]; then
 fi
 
 # Classify each pane
-declare -A pane_categories
+typeset -A pane_categories
 has_editor=false
 has_primary=false
 
 for pid in "${pane_ids[@]}"; do
   category="$("$CURRENT_DIR/classify_pane.sh" "$pid")"
-  pane_categories["$pid"]="$category"
+  pane_categories[$pid]="$category"
 
   if [[ "$category" == "editor" ]]; then
     has_editor=true
@@ -57,14 +57,9 @@ done
 
 # Choose and apply layout strategy
 if $has_editor; then
-  # Strategy 1: Main + sidebar
-  # Editor is first in sorted list (priority 1), rest follow
   layout_main_sidebar "${sorted_panes[@]}"
 elif $has_primary; then
-  # Strategy 2: Top + bottom
-  # Primary pane (repl/tests/build) is first, rest follow
   layout_top_bottom "${sorted_panes[@]}"
 else
-  # Strategy 3: Even tiled
   layout_even
 fi

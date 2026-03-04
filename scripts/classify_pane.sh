@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 # Classifies a single tmux pane by type using a two-pass heuristic.
 # Usage: classify_pane.sh <pane_id>
 # Output: category string (editor, repl, logs, monitor, docs, tests, build, git, shell)
@@ -11,7 +11,7 @@ fi
 
 # Pass 1 — Process name
 cmd="$(tmux display-message -p -t "$pane_id" '#{pane_current_command}')"
-cmd_lower="$(echo "$cmd" | tr '[:upper:]' '[:lower:]')"
+cmd_lower="${cmd:l}"
 
 case "$cmd_lower" in
   vim|nvim|vi|emacs|nano|hx|code)
