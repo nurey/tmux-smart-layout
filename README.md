@@ -64,10 +64,11 @@ set -g @smart-layout-primary-size '60'
 |---|---|
 | `vim`, `nvim`, `vi`, `emacs`, `nano`, `hx`, `code` | `editor` |
 | `irb`, `pry`, `ghci`, `iex`, `lua`, `claude` | `repl` |
-| `tail`, `less`, `more`, `journalctl`, `multitail`, `puma`, `webpack` | `logs` |
+| `tail`, `less`, `more`, `journalctl`, `multitail`, `puma` | `logs` |
 | `htop`, `top`, `btop`, `glances`, `nmon`, `ngrok` | `monitor` |
 | `man`, `info` | `docs` |
 | `ruby`/`python`/`node` with REPL prompt (`>>>`, `irb(main)`, `pry(main)`, etc.) | `repl` |
+| Shell with `webpack ... compiled successfully` output | `logs` |
 | Shell with log patterns | `logs` |
 | Shell with test output | `tests` |
 | Shell with compiler output | `build` |

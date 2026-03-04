@@ -22,7 +22,7 @@ case "$cmd_lower" in
     echo "repl"
     exit 0
     ;;
-  tail|less|more|journalctl|multitail|puma|webpack)
+  tail|less|more|journalctl|multitail|puma)
     echo "logs"
     exit 0
     ;;
@@ -49,6 +49,8 @@ content="$(tmux capture-pane -t "$pane_id" -p 2>/dev/null)"
 if echo "$content" | grep -qE '(irb\(main\)|pry\(main\)|rails console|>>> |> \.\.\.|In \[[0-9]+\]:)'; then
   echo "repl"
 elif echo "$content" | grep -qE '(INFO|WARN|ERROR|DEBUG)' && echo "$content" | grep -qE '[0-9]{2}:[0-9]{2}:[0-9]{2}'; then
+  echo "logs"
+elif echo "$content" | grep -qE 'webpack.*compiled.*(successfully|with|in [0-9]+ ms)'; then
   echo "logs"
 elif echo "$content" | grep -qE '(PASS|FAIL|examples?|assertions?|✓|✗|passed|failed|[0-9]+ tests?)'; then
   echo "tests"
