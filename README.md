@@ -22,7 +22,7 @@ When triggered, the plugin:
 Add to `~/.tmux.conf`:
 
 ```tmux
-set -g @plugin 'username/tmux-smart-layout'
+set -g @plugin 'nurey/tmux-smart-layout'
 ```
 
 Then press `prefix + I` to install.
@@ -30,7 +30,7 @@ Then press `prefix + I` to install.
 ### Manual
 
 ```bash
-git clone https://github.com/username/tmux-smart-layout ~/.tmux/plugins/tmux-smart-layout
+git clone https://github.com/nurey/tmux-smart-layout ~/.tmux/plugins/tmux-smart-layout
 ```
 
 Add to `~/.tmux.conf`:
