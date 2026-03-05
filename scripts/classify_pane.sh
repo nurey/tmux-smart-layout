@@ -36,15 +36,19 @@ case "$cmd_lower" in
     echo "docs"
     exit 0
     ;;
+  zsh|bash|fish|sh|ruby|python|python3|node)
+    # Known processes — skip title check, go straight to content heuristics
+    ;;
+  *)
+    # Pass 2 — Pane title (only for unrecognized process names like Claude's version string)
+    if [[ "$pane_title" == ✳* ]]; then
+      echo "editor"
+      exit 0
+    fi
+    ;;
 esac
 
-# Pass 2 — Pane title (for unrecognized process names like Claude's version string)
-if [[ "$pane_title" == ✳* ]]; then
-  echo "editor"
-  exit 0
-fi
-
-# Pass 3 — Content heuristics (reached for unrecognized processes without a known title)
+# Pass 3 — Content heuristics (last 20 lines of pane output)
 content="$(tmux capture-pane -t "$pane_id" -p -S -20 2>/dev/null)"
 
 if echo "$content" | grep -qE '(irb\(main\)|pry\(main\)|rails console|>>> |> \.\.\.|In \[[0-9]+\]:)'; then
