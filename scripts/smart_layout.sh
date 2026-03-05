@@ -31,7 +31,7 @@ fi
 
 # Classify each pane
 typeset -A pane_categories
-has_editor=false
+editor_count=0
 has_primary=false
 
 for pid in "${pane_ids[@]}"; do
@@ -39,7 +39,7 @@ for pid in "${pane_ids[@]}"; do
   pane_categories[$pid]="$category"
 
   if [[ "$category" == "editor" ]]; then
-    has_editor=true
+    (( editor_count++ ))
   elif [[ "$category" =~ ^(repl|tests|build)$ ]]; then
     has_primary=true
   fi
@@ -56,7 +56,9 @@ for p in 1 2 3 4 5; do
 done
 
 # Choose and apply layout strategy
-if $has_editor; then
+if (( editor_count > 1 )); then
+  layout_grid "$editor_count" "${sorted_panes[@]}"
+elif (( editor_count == 1 )); then
   layout_main_sidebar "${sorted_panes[@]}"
 elif $has_primary; then
   layout_top_bottom "${sorted_panes[@]}"

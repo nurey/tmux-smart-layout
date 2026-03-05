@@ -82,7 +82,43 @@ layout_top_bottom() {
   tmux resize-pane -t "$(tmux list-panes -F '#{pane_id}' | head -1)" -y "$primary_height"
 }
 
-# Strategy 3: Even tiled layout (fallback).
+# Strategy 3: Grid layout — multiple editors on top, rest on bottom.
+# Args: editor_count sorted_pane1 sorted_pane2 ...
+layout_grid() {
+  local editor_count="$1"
+  shift
+  local all_panes=("$@")
+  local primary_size
+  primary_size="$(get_option @smart-layout-primary-size 60)"
+
+  local window_height
+  window_height="$(tmux display-message -p '#{window_height}')"
+  local primary_height=$(( window_height * primary_size / 100 ))
+
+  # Apply tiled first to establish grid positions, then swap into desired order
+  tmux select-layout tiled
+
+  local current
+  current=($(tmux list-panes -F '#{pane_id}'))
+
+  for (( i = 1; i <= $#all_panes; i++ )); do
+    if [[ "${all_panes[$i]}" != "${current[$i]}" ]]; then
+      for (( j = i + 1; j <= $#current; j++ )); do
+        if [[ "${current[$j]}" == "${all_panes[$i]}" ]]; then
+          tmux swap-pane -s "${current[$j]}" -t "${current[$i]}"
+          local tmp="${current[$i]}"
+          current[$i]="${current[$j]}"
+          current[$j]="$tmp"
+          break
+        fi
+      done
+    fi
+  done
+
+  tmux resize-pane -t "$(tmux list-panes -F '#{pane_id}' | head -1)" -y "$primary_height"
+}
+
+# Strategy 4: Even tiled layout (fallback).
 layout_even() {
   tmux select-layout tiled
 }

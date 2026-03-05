@@ -67,8 +67,8 @@ set -g @smart-layout-primary-size '60'
 
 | Process | Category |
 |---|---|
-| `vim`, `nvim`, `vi`, `emacs`, `nano`, `hx`, `code` | `editor` |
-| `irb`, `pry`, `ghci`, `iex`, `lua`, `claude` | `repl` |
+| `vim`, `nvim`, `vi`, `emacs`, `nano`, `hx`, `code`, `claude` | `editor` |
+| `irb`, `pry`, `ghci`, `iex`, `lua` | `repl` |
 | `tail`, `less`, `more`, `journalctl`, `multitail`, `puma` | `logs` |
 | `htop`, `top`, `btop`, `glances`, `nmon`, `ngrok` | `monitor` |
 | `man`, `info` | `docs` |
@@ -82,7 +82,7 @@ set -g @smart-layout-primary-size '60'
 
 ## Layout Strategies
 
-### Main + sidebar (editor present)
+### Main + sidebar (single editor)
 
 ```
 ┌──────────────┬────────┐
@@ -92,6 +92,17 @@ set -g @smart-layout-primary-size '60'
 │              ├────────┤
 │              │ logs   │
 └──────────────┴────────┘
+```
+
+### Grid (multiple editors, e.g. two Claude panes)
+
+```
+┌────────────┬────────────┐
+│  claude    │  claude    │
+│            │   (60%)    │
+├────────────┬────────────┤
+│   repl     │   shell    │
+└────────────┴────────────┘
 ```
 
 ### Top + bottom (REPL/tests/build present, no editor)

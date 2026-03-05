@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-# Classifies a single tmux pane by type using a two-pass heuristic.
+# Classifies a single tmux pane by type using a three-pass heuristic.
 # Usage: classify_pane.sh <pane_id>
 # Output: category string (editor, repl, logs, monitor, docs, tests, build, git, shell)
 
@@ -9,16 +9,18 @@ if [[ -z "$pane_id" ]]; then
   exit 0
 fi
 
-# Pass 1 — Process name
+# Read pane metadata
 cmd="$(tmux display-message -p -t "$pane_id" '#{pane_current_command}')"
 cmd_lower="${cmd:l}"
+pane_title="$(tmux display-message -p -t "$pane_id" '#{pane_title}')"
 
+# Pass 1 — Process name (known processes are classified immediately)
 case "$cmd_lower" in
   vim|nvim|vi|emacs|nano|hx|code)
     echo "editor"
     exit 0
     ;;
-  irb|pry|ghci|iex|lua|claude)
+  irb|pry|ghci|iex|lua)
     echo "repl"
     exit 0
     ;;
@@ -34,16 +36,15 @@ case "$cmd_lower" in
     echo "docs"
     exit 0
     ;;
-  zsh|bash|fish|sh|ruby|python|python3|node)
-    # Fall through to pass 2
-    ;;
-  *)
-    echo "shell"
-    exit 0
-    ;;
 esac
 
-# Pass 2 — Content heuristics (only reached for shell processes)
+# Pass 2 — Pane title (for unrecognized process names like Claude's version string)
+if [[ "$pane_title" == ✳* ]]; then
+  echo "editor"
+  exit 0
+fi
+
+# Pass 3 — Content heuristics (reached for unrecognized processes without a known title)
 content="$(tmux capture-pane -t "$pane_id" -p -S -20 2>/dev/null)"
 
 if echo "$content" | grep -qE '(irb\(main\)|pry\(main\)|rails console|>>> |> \.\.\.|In \[[0-9]+\]:)'; then
