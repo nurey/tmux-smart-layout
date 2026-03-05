@@ -6,12 +6,14 @@ A tmux plugin that automatically rearranges panes based on their contents. Uses 
 
 When triggered, the plugin:
 
-1. **Classifies** each pane using a two-pass heuristic:
+1. **Classifies** each pane using a three-pass heuristic:
    - **Process name** — detects editors, REPLs, log viewers, monitors, etc.
-   - **Content patterns** — for shell panes, scans visible text for log output, test results, build output, or git diffs
+   - **Pane title** — detects tools like Claude that set a distinctive title (`✳`)
+   - **Content patterns** — scans visible text for log output, test results, build output, or git diffs
 
 2. **Chooses a layout** based on the pane mix:
-   - **Main + sidebar** — when an editor is present, it gets ~65% width on the left
+   - **Main + sidebar** — single editor gets ~65% width on the left
+   - **Grid** — multiple editors (e.g. Claude panes) share the top row at ~60% height
    - **Top + bottom** — when a REPL/test/build pane is the primary, it gets ~60% height on top
    - **Even tiled** — fallback when all panes are shells or no clear primary exists
 
@@ -67,17 +69,18 @@ set -g @smart-layout-primary-size '60'
 
 | Process | Category |
 |---|---|
-| `vim`, `nvim`, `vi`, `emacs`, `nano`, `hx`, `code`, `claude` | `editor` |
+| `vim`, `nvim`, `vi`, `emacs`, `nano`, `hx`, `code` | `editor` |
 | `irb`, `pry`, `ghci`, `iex`, `lua` | `repl` |
 | `tail`, `less`, `more`, `journalctl`, `multitail`, `puma` | `logs` |
 | `htop`, `top`, `btop`, `glances`, `nmon`, `ngrok` | `monitor` |
 | `man`, `info` | `docs` |
-| `ruby`/`python`/`node` with REPL prompt (`>>>`, `irb(main)`, `pry(main)`, etc.) | `repl` |
-| Shell with `webpack ... compiled successfully` output | `logs` |
-| Shell with log patterns | `logs` |
-| Shell with test output | `tests` |
-| Shell with compiler output | `build` |
-| Shell with git output | `git` |
+| Pane title starting with `✳` (e.g. Claude Code) | `editor` |
+| REPL prompt (`>>>`, `irb(main)`, `pry(main)`, etc.) | `repl` |
+| `webpack ... compiled successfully` output | `logs` |
+| Timestamped log levels (`INFO`, `WARN`, `ERROR`, `DEBUG`) | `logs` |
+| Test output (`PASS`, `FAIL`, `✓`, `✗`, etc.) | `tests` |
+| Compiler/build output (`error:`, `warning:`, `Compiling`, etc.) | `build` |
+| Git output (`commit`, `diff --git`, etc.) | `git` |
 | Everything else | `shell` |
 
 ## Layout Strategies
